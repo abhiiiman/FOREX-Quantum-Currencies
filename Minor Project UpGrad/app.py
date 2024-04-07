@@ -1,0 +1,206 @@
+import streamlit as st, pandas as pd, numpy as np, yfinance as yf
+import plotly.express as px
+import matplotlib.pyplot as plt
+from stocknews import StockNews
+from datetime import datetime
+from datetime import date
+from currency_converter import CurrencyConverter
+
+st.set_page_config(
+    page_title="Quantum Currencies - ForEX",
+    page_icon="chart_with_upwards_trend",
+)
+
+st.title("Quantum Currencies 💸")
+st.markdown("##### ForEX Dashboard 🖥️")
+st.markdown("##### Time Series Forecasting Model ⏳")
+
+with st.sidebar:
+    st.header("Dataset Configuration ⚙️")
+
+@st.cache_data
+def load_data(file):
+    data = pd.read_csv(file)
+    return data
+
+upload_file = st.sidebar.file_uploader("Choose a File 📂")
+
+if upload_file is None:
+    st.info("Upload your Dataset file to get started ⬆️")
+    st.stop()
+
+st.markdown(f"`DataSet Loaded : {upload_file.name}`")
+
+# loading the dataset here
+df = load_data(upload_file)
+st.dataframe(df)
+
+with st.sidebar.popover("View Available Models "):
+    st.write("Model Options :\n1. ARIMA\n2. LSTM\n3. FB Prophet")
+
+# Set default dates
+default_start_date = datetime(2001, 1, 1)
+default_end_date = datetime(2016, 7, 1)
+
+start_date = st.sidebar.date_input('Start Date 📅', value=default_start_date)
+end_date = st.sidebar.date_input('End Date 📅', value=default_end_date)
+
+# showing the well formatted dataset here
+
+st.markdown('''
+#### Data Preprocessing 🧠
+* Imputed the `Null Values`.
+* Extracted `Dates` frm the `Quarters`.
+* Converted the `Dataframe` to a `suitable format`.
+''')
+format_df = pd.read_csv("my_file.csv")
+with st.expander("Data Preview"):
+    st.dataframe(format_df)
+
+# showing the df for INDIA here
+
+st.markdown(
+    "#### `INDIA - USD` Foreign Exchange Rate Data ⚖️"
+)
+india_df = pd.read_csv("India.csv")
+with st.expander("Data Preview"):
+    st.dataframe(india_df)
+
+# data visualization for india here
+st.markdown(
+    "#### Data Visualization"
+)
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.plot(india_df['Date'], india_df['INDIA'], marker='o', linestyle='-')
+ax.set_title('Exchange Rates for India Over a Period of 16 Years')
+ax.set_xlabel('Quarter')
+ax.set_ylabel('Exchange Rate')
+ax.grid(True)
+ax.tick_params(axis='x', rotation=45)
+plt.tight_layout()
+
+# Display the plot in Streamlit
+st.pyplot(fig)
+
+# creating the tabs here
+
+visualize_rate, predict_rate, convert_currency, forex_news, about_us = st.tabs(['Visualize Exchange Rates 💹', 'Predict Exchange Rates 🔮', 'Currency Converter 🔁', 'ForEX News 📰', 'About Us⚡'])
+
+with visualize_rate:
+    st.title("Visualize Exchange Rates 💹")
+    df = format_df
+    # Extract the first column (Date_Quarter) to use as index
+    df.set_index('Date_Quarter', inplace=True)
+
+    # Extract country names from the DataFrame
+    countries = df.columns.tolist()
+
+    # Create a dropdown menu for selecting the country
+    selected_country = st.selectbox('Select Country', countries)
+
+    # Plotting time series graph for the selected country
+    plt.figure(figsize=(12, 6))
+    plt.plot(df.index, df[selected_country], marker='o', linestyle='-')
+    plt.title(f'Exchange Rates for {selected_country} Over Time')
+    plt.xlabel('Quarter')
+    plt.ylabel('Exchange Rate')
+    plt.grid(True)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    # show the plot
+    st.pyplot(plt)
+
+with predict_rate:
+    # setting up the title here.
+    st.title("Predict Exchange Rates 🔮")
+    # creating a dropdown for the avaialable models here
+    selected_model = st.selectbox('Select from Available Models 🤖', options=('ARIMA', 'LSTM', 'FB Prophet'))
+    print(selected_model)
+    # extracting the columns from the dataframe here
+    countries = df.columns[1:]
+    # Convert the extracted countries to a list
+    country_list = list(countries)
+    # Display the list of countries as a selectbox
+    selected_country = st.selectbox('Select a country 🌍', country_list)
+    # creating the predict button here
+    if st.button(f'Make Future Forecasting for {selected_country}'):
+        try:
+            pass
+        except ValueError as e:
+            st.error(str(e))
+
+    # plotting the actual vs predicted graph here.
+
+with about_us:
+    st.title("About Us ⚡")
+    st.header("Team HardCoders 🦾")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.image("Assets/A-pfp.png")
+        st.subheader("1️⃣ Abhijit Mandal")
+        st.markdown('''
+            * **`Github`** ⭐  
+                https://github.com/abhiiiman
+            * **`Linkedin`**  🔗 
+                https://linkedin.com/in/abhiiiman
+            * **`Portfolio`** 🌐
+                https://abhiiiman.github.io/Abhijit-Mandal
+        ''')
+
+    with col2:
+        st.image("Assets/H-pfp.png")
+        st.subheader("2️⃣ Hardik Sharma")
+        st.markdown('''
+            * **`Github`** ⭐ 
+                https://github.com/CodeStrate
+            * **`Linkedin`**  🔗
+                https://linkedin.com/in/hardik-sharma-0256cs
+        ''')
+
+    with col3:
+        st.image("Assets/D-pfp.png")
+        st.subheader("3️⃣ Divyanshi")
+        st.markdown('''
+            * **`Github`** ⭐
+                https://github.com/Divvyanshiii
+            * **`Linkedin`**  🔗 
+                https://linkedin.com/in/divyanshi-shrivastav
+        ''')
+
+with convert_currency:
+    # Initialize CurrencyConverter
+    c = CurrencyConverter()
+    # Title
+    st.title('Currency Converter 🔁')
+    # Currency input fields
+    amount = st.number_input('Enter amount to convert 👇', min_value=1, step=1, value=100)
+    from_currency = st.text_input('Enter Source Currency 👇', value='INR')
+    to_currency = st.text_input('Enter Target Currency 👇', value="USD")
+    # Date input field
+    conversion_date = st.date_input('Conversion Date 👇', value=date.today())
+    # Convert currency when the user clicks the button
+    if st.button('Convert'):
+        try:
+            converted_amount = c.convert(amount, from_currency, to_currency, date=conversion_date)
+            st.success(f'{amount} {from_currency} is approximately {converted_amount:.2f} {to_currency}')
+        except ValueError as e:
+            st.error(str(e))
+
+with forex_news:
+    st.title("Top 10 Finance News 🗞️")
+    st.subheader("Domain : Stock Market 📉")
+    sn = StockNews("finance", save_news=False)
+    df_news = sn.read_rss()
+    for i in range(10):
+        st.markdown(f"### `News {i+1}`")
+        st.markdown(f"* {df_news['published'][i]}")
+        st.header(df_news['title'][i])
+        st.write(df_news['summary'][i])
+        title_sentiment = df_news['sentiment_title'][i]
+        news_sentiment = df_news['sentiment_summary'][i]
+        st.markdown(f'''
+            * **Title Sentiment** `{title_sentiment}`  
+            * **News Sentiment** `{news_sentiment}`
+        ''')
