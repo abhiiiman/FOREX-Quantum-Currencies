@@ -7,6 +7,9 @@ from datetime import date
 from currency_converter import CurrencyConverter
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
+from prophet import Prophet
+from prophet.plot import plot_plotly
+from plotly import graph_objs as go
 
 global main_df
 
@@ -64,7 +67,7 @@ st.markdown('''
 * Extracted `Dates` frm the `Quarters`.
 * Converted the `Dataframe` to a `suitable format`.
 ''')
-format_df = pd.read_csv("Datasets\my_file.csv")
+format_df = pd.read_csv(r"Datasets\my_file.csv")
 with st.expander("Data Preview"):
     st.dataframe(format_df)
 
@@ -73,7 +76,7 @@ with st.expander("Data Preview"):
 st.markdown(
     "#### `INDIA - USD` Foreign Exchange Rate Data ⚖️"
 )
-india_df = pd.read_csv("Datasets\India.csv")
+india_df = pd.read_csv(r"Datasets\India.csv")
 with st.expander("Data Preview"):
     st.dataframe(india_df)
 
@@ -124,12 +127,15 @@ with visualize_rate:
 
 # creating the helper functions for the forecasting here.
 
-main_df = pd.read_csv('Datasets\my_file.csv')
+main_df = pd.read_csv(r'Datasets\my_file.csv')
 
 def forecast_ARIMA(country):
+    st.balloons()
     pass
 
 def forecast_LSTM(country):
+
+    st.balloons()
 
     # Visualization 1 - normal
     st.subheader("1️⃣ Exchange Rate VS Time Chart")
@@ -178,7 +184,7 @@ def forecast_LSTM(country):
     data_training_array = scaler.fit_transform(data_training)
 
     # Loading the LSTM Model here
-    model = load_model('Models\LSTM_Model_Max.h5')
+    model = load_model(r'Models\LSTM_Model_Max.h5')
 
     # Testing Part
     past_40_days = data_training.tail(40)
@@ -213,9 +219,31 @@ def forecast_LSTM(country):
     plt.legend()
     st.pyplot(fig)
 
+def forecast_FB(country, period):
+    st.balloons()
+    
+    # setting up the dataframe for the model here.
+    df_train = main_df[['Date_Quarter', country]]
+    df_train = df_train.rename(columns = {'Date_Quarter' : 'ds', f'{country}' : 'y'})
 
-def forecast_FB(country):
-    pass
+    # setting up the model here
+    model = Prophet()
+    model.fit(df_train)
+    future = model.make_future_dataframe(periods=period)
+    forecast = model.predict(future)
+
+    st.subheader('Forecast DataFrame ☑️')
+    st.dataframe(forecast.tail())
+
+    # plotting the forecast data here
+    st.subheader('Forecast Data 🌟')
+    fig1 = plot_plotly(model, forecast)
+    st.plotly_chart(fig1)
+
+    st.subheader('Forecast Components ➕')
+    fig2 = model.plot_components(forecast)
+    st.write(fig2)
+
 
 with predict_rate:
     # setting up the title here.
@@ -229,6 +257,9 @@ with predict_rate:
     country_list = list(countries)
     # Display the list of countries as a selectbox
     selected_country = st.selectbox('Select a country 🌍', country_list)
+    #creating the slider for the period here
+    n_years = st.slider("Years of Prediction 👇🏻 (Only for FB Prophet Model)", 1, 4)
+    period = n_years * 365
     # creating the predict button here
     if st.button(f'Make Future Forecasting for {selected_country.capitalize()}'):
         try:
@@ -237,7 +268,7 @@ with predict_rate:
             elif (selected_model == "LSTM"):
                 forecast_LSTM(selected_country)
             else:
-                forecast_FB(selected_country)
+                forecast_FB(selected_country, period)
         except ValueError as e:
             st.error(str(e))
 
