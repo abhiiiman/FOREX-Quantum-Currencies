@@ -10,6 +10,8 @@ from sklearn.preprocessing import MinMaxScaler
 from prophet import Prophet
 from prophet.plot import plot_plotly
 from plotly import graph_objs as go
+from statsmodels.tsa.arima.model import ARIMA
+import joblib
 
 global main_df
 
@@ -50,7 +52,7 @@ df = load_data(upload_file)
 st.dataframe(df)
 
 with st.sidebar.popover("View Available Models "):
-    st.write("Model Options :\n1. ARIMA\n2. LSTM\n3. FB Prophet")
+    st.write("Model Options :\n1. ARIMA 🤖\n2. LSTM 🤖\n3. FB Prophet 🤖")
 
 # Set default dates
 default_start_date = datetime(2001, 1, 1)
@@ -130,8 +132,57 @@ with visualize_rate:
 main_df = pd.read_csv(r'Datasets\my_file.csv')
 
 def forecast_ARIMA(country):
-    st.balloons()
-    pass
+
+    with st.spinner("Training ARIMA Model..."):
+        # Data preprocessing here
+        df_country = main_df[['Date_Quarter', country]]
+        data = df_country[f'{country}']
+        X = data.values
+        size = int(len(X) * 0.7)
+        train, test = X[0:size], X[size:len(X)]
+        train2 = X
+        data_history, predictions = [x for x in train], []
+        history = train2.copy()
+
+        # loading effect here
+        progress_bar = st.progress(0)
+
+        # training ARIMA on 5 lags, 1 differential and 3 MA window
+        for t in range(len(test)):
+            model = ARIMA(data_history, order=(5,1,3))
+            model_fit = model.fit()
+            output = model_fit.forecast()
+            prediction = round(output[0], 3)
+            predictions.append(prediction)
+            actual = test[t]
+            data_history.append(actual)
+            progress_bar.progress((t + 1) / len(test))
+        
+        # Close progress bar
+        progress_bar.empty()
+        st.balloons()
+    
+        # loading the Model here
+        loaded_model = joblib.load(r'Models\arima_model.pkl')
+
+        # prediction for the next Quarter here
+        next_model = ARIMA(history, order=(5,1,3))
+        next_model_fit = next_model.fit()
+        next_output = next_model_fit.forecast()
+        next_prediction = round(next_output[0], 3)
+        st.subheader("Predicted Exchange Rate for Next Quarter of 2016 🟢")
+        st.success(next_prediction)
+
+        # plotting the actual vs predicted graph here
+        st.subheader("Forecasting Actual VS Predicted Rates 📈")
+        fig = plt.figure(figsize=(12, 6))
+        plt.plot(test, 'r', label = "Actual Rates")
+        plt.plot(predictions, 'g', label = 'Predicted Rates')
+        plt.title(f"Exchange Rate for {country.capitalize()} over the period of 2001 - 2016")
+        plt.xlabel("Time")
+        plt.ylabel("Exchange Rate")
+        plt.legend()
+        st.pyplot(fig)
 
 def forecast_LSTM(country):
 
@@ -243,7 +294,6 @@ def forecast_FB(country, period):
     st.subheader('Forecast Components ➕')
     fig2 = model.plot_components(forecast)
     st.write(fig2)
-
 
 with predict_rate:
     # setting up the title here.
