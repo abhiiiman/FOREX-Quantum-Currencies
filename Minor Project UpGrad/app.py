@@ -5,10 +5,21 @@ from stocknews import StockNews
 from datetime import datetime
 from datetime import date
 from currency_converter import CurrencyConverter
+from keras.models import load_model
+from sklearn.preprocessing import MinMaxScaler
+
+global main_df
 
 st.set_page_config(
     page_title="Quantum Currencies - ForEX",
     page_icon="chart_with_upwards_trend",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://www.linkedin.com/in/abhiiiman',
+        'Report a bug': "https://www.github.com/abhiiiman",
+        'About': "## Quantum Currencies ForEX Time Series Forecasting By The HardCoders 🦾"
+    }
 )
 
 st.title("Quantum Currencies 💸")
@@ -53,7 +64,7 @@ st.markdown('''
 * Extracted `Dates` frm the `Quarters`.
 * Converted the `Dataframe` to a `suitable format`.
 ''')
-format_df = pd.read_csv("my_file.csv")
+format_df = pd.read_csv("Datasets\my_file.csv")
 with st.expander("Data Preview"):
     st.dataframe(format_df)
 
@@ -62,7 +73,7 @@ with st.expander("Data Preview"):
 st.markdown(
     "#### `INDIA - USD` Foreign Exchange Rate Data ⚖️"
 )
-india_df = pd.read_csv("India.csv")
+india_df = pd.read_csv("Datasets\India.csv")
 with st.expander("Data Preview"):
     st.dataframe(india_df)
 
@@ -111,6 +122,101 @@ with visualize_rate:
     # show the plot
     st.pyplot(plt)
 
+# creating the helper functions for the forecasting here.
+
+main_df = pd.read_csv('Datasets\my_file.csv')
+
+def forecast_ARIMA(country):
+    pass
+
+def forecast_LSTM(country):
+
+    # Visualization 1 - normal
+    st.subheader("1️⃣ Exchange Rate VS Time Chart")
+    fig = plt.figure(figsize=(12, 6))
+    plt.plot(main_df[f'{country}'], 'b', label = "Exchange Rates")
+    plt.title(f"Exchange Rate for {country} over the period of 2001 - 2016")
+    plt.xlabel("Time")
+    plt.ylabel("Exchange Rate")
+    plt.legend()
+    st.pyplot(fig)
+
+    # visualization 2 - moving average of 10
+    st.subheader("2️⃣ Exchange Rate VS Time Chart with 10 Moving Average")
+    ma10 = main_df[f'{country}'].rolling(10).mean()
+    fig = plt.figure(figsize=(12, 6))
+    plt.plot(main_df[f'{country}'], 'b', label = "Exchange Rates")
+    plt.plot(ma10, 'r', label = 'MA-10')
+    plt.title(f"Exchange Rate for {country} over the period of 2001 - 2016")
+    plt.xlabel("Time")
+    plt.ylabel("Exchange Rate")
+    plt.legend()
+    st.pyplot(fig)
+
+    # visualization 3 - moving average of 20
+    st.subheader("3️⃣ Exchange Rate VS Time Chart with 10 & 20 Moving Average")
+    ma20 = main_df[f'{country}'].rolling(20).mean()
+    fig = plt.figure(figsize=(12, 6))
+    plt.plot(main_df[f'{country}'], 'b', label = "Exchange Rates")
+    plt.plot(ma10, 'r', label = 'MA-10')
+    plt.plot(ma20, 'g', label = "MA-20")
+    plt.title(f"Exchange Rate for {country} over the period of 2001 - 2016")
+    plt.xlabel("Time")
+    plt.ylabel("Exchange Rate")
+    plt.legend()
+    st.pyplot(fig)
+
+    # Data preprocessing here
+    df_country = main_df[['Date_Quarter', country]]
+
+    # Splitting Data into Training and Testing -> 70-30 split
+    data_training = pd.DataFrame(df_country[f'{country}'][0:int(len(df_country)*0.70)])
+    data_testing = pd.DataFrame(df_country[f'{country}'][int(len(df_country)*0.70):int(len(df_country))])
+
+    # Performing Min-Max Scaling here
+    scaler = MinMaxScaler(feature_range = (0,1))
+    data_training_array = scaler.fit_transform(data_training)
+
+    # Loading the LSTM Model here
+    model = load_model('Models\LSTM_Model_Max.h5')
+
+    # Testing Part
+    past_40_days = data_training.tail(40)
+    final_df = pd.concat([past_40_days, data_testing], ignore_index=True)
+    input_data = scaler.fit_transform(final_df)
+
+    x_test = []
+    y_test = []
+
+    for i in range(40, input_data.shape[0]):
+        x_test.append(input_data[i-40:i])
+        y_test.append(input_data[i, 0])
+    
+    x_test, y_test = np.array(x_test), np.array(y_test)
+
+    # Making the Predictions here
+    y_predicted = model.predict(x_test)
+
+    # Inverse the Scaling here
+    scaler = scaler.scale_
+    scale_factor = 1/scaler[0]
+    y_predicted = y_predicted * scale_factor
+    y_test = y_test * scale_factor
+
+    # visualization 4 - actual forecasting plot
+    st.subheader(f"4️⃣ Future Time Series Forecasting | Original vs Predicted")
+    fig = plt.figure(figsize = (12, 6))
+    plt.plot(y_test, 'b', label = "Original Price")
+    plt.plot(y_predicted, 'r', label = "Predicted Price")
+    plt.xlabel('Time')
+    plt.ylabel('Exchange Rate')
+    plt.legend()
+    st.pyplot(fig)
+
+
+def forecast_FB(country):
+    pass
+
 with predict_rate:
     # setting up the title here.
     st.title("Predict Exchange Rates 🔮")
@@ -124,9 +230,14 @@ with predict_rate:
     # Display the list of countries as a selectbox
     selected_country = st.selectbox('Select a country 🌍', country_list)
     # creating the predict button here
-    if st.button(f'Make Future Forecasting for {selected_country}'):
+    if st.button(f'Make Future Forecasting for {selected_country.capitalize()}'):
         try:
-            pass
+            if (selected_model == "ARIMA"):
+                forecast_ARIMA(selected_country)
+            elif (selected_model == "LSTM"):
+                forecast_LSTM(selected_country)
+            else:
+                forecast_FB(selected_country)
         except ValueError as e:
             st.error(str(e))
 
