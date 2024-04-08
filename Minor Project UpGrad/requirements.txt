@@ -1,0 +1,14 @@
+keras
+streamlit
+plotly
+pandas
+numpy
+yfinance
+stocknews
+statsmodels
+joblib
+scikit-learn
+matplotlib
+datetime
+prophet
+forex-python

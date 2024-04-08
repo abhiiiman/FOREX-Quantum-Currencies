@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from stocknews import StockNews
 from datetime import datetime
 from datetime import date
-from currency_converter import CurrencyConverter
+# from currency_converter import CurrencyConverter
+from forex_python.converter import CurrencyRates
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 from prophet import Prophet
@@ -363,7 +364,8 @@ with about_us:
 
 with convert_currency:
     # Initialize CurrencyConverter
-    c = CurrencyConverter()
+    # c = CurrencyConverter()
+    c = CurrencyRates()
     # Title
     st.title('Currency Converter 🔁')
     # Currency input fields
@@ -375,7 +377,8 @@ with convert_currency:
     # Convert currency when the user clicks the button
     if st.button('Convert'):
         try:
-            converted_amount = c.convert(amount, from_currency, to_currency, date=conversion_date)
+            # converted_amount = c.convert(amount, from_currency, to_currency, date=conversion_date)
+            converted_amount = c.convert(from_currency, to_currency, amount)
             st.success(f'{amount} {from_currency} is approximately {converted_amount:.2f} {to_currency}')
         except ValueError as e:
             st.error(str(e))
