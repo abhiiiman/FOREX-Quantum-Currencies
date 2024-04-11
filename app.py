@@ -73,7 +73,7 @@ st.markdown('''
 * Extracted `Dates` frm the `Quarters`.
 * Converted the `Dataframe` to a `suitable format`.
 ''')
-format_df = pd.read_csv(r"Datasets\my_file.csv")
+format_df = pd.read_csv("my_file.csv")
 with st.expander("Data Preview"):
     st.dataframe(format_df)
 
@@ -82,7 +82,7 @@ with st.expander("Data Preview"):
 st.markdown(
     "#### `INDIA - USD` Foreign Exchange Rate Data ⚖️"
 )
-india_df = pd.read_csv(r"Datasets\India.csv")
+india_df = pd.read_csv("India.csv")
 with st.expander("Data Preview"):
     st.dataframe(india_df)
 
@@ -133,7 +133,7 @@ with visualize_rate:
 
 # creating the helper functions for the forecasting here.
 
-main_df = pd.read_csv(r'Datasets\my_file.csv')
+main_df = pd.read_csv('my_file.csv')
 
 # Function to predict using ARIMA model
 def arima_predictor(params):
