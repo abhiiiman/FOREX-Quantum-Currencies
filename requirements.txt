@@ -14,3 +14,4 @@ datetime
 prophet
 forex-python
 mango
+arm-mango
