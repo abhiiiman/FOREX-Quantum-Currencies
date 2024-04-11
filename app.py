@@ -242,7 +242,7 @@ def forecast_ARIMA(country):
         st.balloons()
     
         # loading the Model here
-        loaded_model = joblib.load(r'Models\arima_model.pkl')
+        loaded_model = joblib.load('arima_model.pkl')
 
         # prediction for the next Quarter here
         next_model = ARIMA(history, order=(5,1,3))
