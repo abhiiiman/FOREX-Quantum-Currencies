@@ -13,3 +13,4 @@ matplotlib
 datetime
 prophet
 forex-python
+mango
