@@ -314,7 +314,7 @@ def forecast_LSTM(country):
     data_training_array = scaler.fit_transform(data_training)
 
     # Loading the LSTM Model here
-    model = load_model(r'Models\LSTM_Model_Max.h5')
+    model = load_model('LSTM_Model_Max.h5')
 
     # Testing Part
     past_40_days = data_training.tail(40)
