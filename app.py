@@ -202,7 +202,7 @@ def forecast_ARIMA_MAX(data_points, country):
         st.balloons()
 
         st.write('Best Parameters:', params)
-        st.markdown(f'##### Best Loss: `{results['best_objective']}`')
+        st.markdown(f'##### Best Loss: `{results["best_objective"]}`')
         st.markdown(f'### Predicted Q4 Value for **{country.capitalize()}** is `{predict}`')
         st.markdown(f'#### R2 Score for {country.capitalize()}: `{round(r2_score(data_points, fitted_values) * 100, 2)}%`')
 
