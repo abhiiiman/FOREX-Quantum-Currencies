@@ -412,7 +412,7 @@ with about_us:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.image("Assets/A-pfp.png")
+        st.image("A-pfp.png")
         st.subheader("1️⃣ Abhijit Mandal")
         st.markdown('''
             * **`Github`** ⭐  
@@ -424,7 +424,7 @@ with about_us:
         ''')
 
     with col2:
-        st.image("Assets/H-pfp.png")
+        st.image("H-pfp.png")
         st.subheader("2️⃣ Hardik Sharma")
         st.markdown('''
             * **`Github`** ⭐ 
@@ -434,7 +434,7 @@ with about_us:
         ''')
 
     with col3:
-        st.image("Assets/D-pfp.png")
+        st.image("D-pfp.png")
         st.subheader("3️⃣ Divyanshi")
         st.markdown('''
             * **`Github`** ⭐
