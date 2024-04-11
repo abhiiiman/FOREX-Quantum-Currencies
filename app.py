@@ -10,12 +10,9 @@ from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 from prophet import Prophet
 from prophet.plot import plot_plotly
-import plotly.express as px
 from plotly import graph_objs as go
 from statsmodels.tsa.arima.model import ARIMA
 import joblib
-from mango import Tuner
-from sklearn.metrics import mean_squared_error, r2_score
 
 global main_df
 
@@ -134,81 +131,6 @@ with visualize_rate:
 # creating the helper functions for the forecasting here.
 
 main_df = pd.read_csv('my_file.csv')
-
-# Function to predict using ARIMA model
-def arima_predictor(params):
-    global data_points
-    
-    p, d, q = params['p'], params['d'], params['q']
-    trend = params['trend']
-    model = ARIMA(data_points, order=(p, d, q), trend=trend)
-    model_fit = model.fit()
-    output = model_fit.forecast()
-    prediction = round(output[0], 3)
-    return prediction, model_fit.fittedvalues
-
-# Function to perform tuning using ARIMA model
-def arima_mango_tuner(args_list):
-
-    global data_points
-
-    evaluated_params = []
-    results = []
-    for params in args_list:
-        try:
-            p, d, q = params['p'], params['d'], params['q']
-            trend = params['trend']
-            model = ARIMA(data_points, order=(p, d, q), trend=trend)
-            predictions = model.fit()
-            rmse = np.sqrt(mean_squared_error(data_points, predictions.fittedvalues))
-            evaluated_params.append(params)
-            results.append(rmse)
-        except:
-            evaluated_params.append(params)
-            results.append(1e5)
-    return evaluated_params, results
-
-# Function to check for early stopping
-def early_stopping(results):
-    current_best_objective = results['best_objective']
-    return current_best_objective <= 1.7
-
-# Function to plot ARIMA graph
-def plot_arima_graph(data_points, fitted_values, prediction, country):
-    x_values = list(range(len(data_points)))
-    df = pd.DataFrame({'Index': x_values, 'Data Points': data_points, 'Fitted Values': fitted_values})
-    fig = px.line(df, x='Index', y=['Data Points', 'Fitted Values'], title=f'ARIMA-MAX Predicted Values vs. Historical ForEx Rates for {country.capitalize()}')
-    fig.add_trace(go.Scatter(x=[len(data_points)], y=[prediction], mode='markers', name='Next Prediction'))
-    fig.update_layout(xaxis_title=country, yaxis_title='ForEx Rates', legend_title='Legend')
-    st.plotly_chart(fig)
-
-def forecast_ARIMA_MAX(data_points, country):
-    with st.spinner("Training ARIMA-MAX Model..."):
-        # ARIMA parameter space
-        param_space = dict(
-            p=range(0, 20),
-            d=range(0, 5),
-            q=range(0, 20),
-            trend=['n', 'c', 't', 'ct']  # n is no trend, c is constant term, t is linear trend, ct is both c and t
-        )
-        config_dict = dict(early_stopping=early_stopping, num_iteration=100)
-        tuner = Tuner(param_space, arima_mango_tuner, config_dict)
-        results = tuner.minimize()
-        params = results['best_params']
-
-        model_results = arima_predictor(params)
-        predict, fitted_values = model_results
-
-        st.balloons()
-
-        st.write('Best Parameters:', params)
-        st.markdown(f'##### Best Loss: `{results["best_objective"]}`')
-        st.markdown(f'### Predicted Q4 Value for **{country.capitalize()}** is `{predict}`')
-        st.markdown(f'#### R2 Score for {country.capitalize()}: `{round(r2_score(data_points, fitted_values) * 100, 2)}%`')
-
-        st.subheader("Forecasting Actual VS Predicted Rates 📈")
-
-        plot_arima_graph(data_points, fitted_values, predict, country)
 
 def forecast_ARIMA(country):
 
@@ -378,7 +300,7 @@ with predict_rate:
     # setting up the title here.
     st.title("Predict Exchange Rates 🔮")
     # creating a dropdown for the avaialable models here
-    selected_model = st.selectbox('Select from Available Models 🤖', options=('ARIMA', 'ARIMA-MAX', 'LSTM', 'FB Prophet'))
+    selected_model = st.selectbox('Select from Available Models 🤖', options=('ARIMA', 'LSTM', 'FB Prophet'))
     print(selected_model)
     # extracting the columns from the dataframe here
     countries = df.columns[1:]
@@ -396,9 +318,6 @@ with predict_rate:
                 forecast_ARIMA(selected_country)
             elif (selected_model == "LSTM"):
                 forecast_LSTM(selected_country)
-            elif (selected_model == 'ARIMA-MAX'):
-                data_points = list(main_df[selected_country])
-                forecast_ARIMA_MAX(data_points, selected_country)
             else:
                 forecast_FB(selected_country, period)
         except ValueError as e:
