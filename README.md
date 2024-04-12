@@ -27,7 +27,8 @@ is suggested. As for model selection, we plan to test and evaluate models from t
 # Feature Tabs
 
 ## 1. Visualization of Exchange Rates 💹
-![image](https://github.com/abhiiiman/FOREX-Quantum-Currencies/assets/100288357/35bc8daa-8378-41fc-81b6-b1e613cbc9d2)
+![image](https://github.com/abhiiiman/FOREX-Quantum-Currencies/assets/100288357/d3a0914b-e6fb-4a27-a82c-751eaa482864)
+
 
 ## 2. Prediction
 ![image](https://github.com/abhiiiman/FOREX-Quantum-Currencies/assets/100288357/fcb9d7b0-1205-48fd-a40b-061428c6a7b9)
