@@ -6,6 +6,7 @@ from datetime import datetime
 from datetime import date
 # from currency_converter import CurrencyConverter
 from forex_python.converter import CurrencyRates
+import requests
 from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 from prophet import Prophet
@@ -362,24 +363,56 @@ with about_us:
                 https://linkedin.com/in/divyanshi-shrivastav
         ''')
 
+def fetch_exchange_rates(base_currency, target_currency, amount):
+    api_key = 'b37bb6abd06165ca30037187'
+    base_url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{base_currency}"
+    try:
+        # Send a GET request to the API
+        response = requests.get(base_url)
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Parse the JSON response
+            data = response.json()
+            
+            # Extract the conversion rates from the response
+            conversion_rates = data["conversion_rates"]
+            
+            # Extract the exchange rate for the target currency
+            exchange_rate = conversion_rates.get(target_currency)
+            
+            if exchange_rate is not None:
+                # Print the exchange rate
+                print(f"The exchange rate from {base_currency} to {target_currency} is: {exchange_rate}")
+                return exchange_rate * amount
+            else:
+                st.error(f"Error: Unable to find exchange rate for {target_currency}")
+                print(f"Error: Unable to find exchange rate for {target_currency}")
+        else:
+            # Print an error message if the request was not successful
+            st.error(f"Error: Unable to fetch exchange rates. Status code: {response.status_code}")
+            print(f"Error: Unable to fetch exchange rates. Status code: {response.status_code}")
+    except Exception as e:
+        # Handle any exceptions that occur during the request
+        st.warning(f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
+
 with convert_currency:
-    # Initialize CurrencyConverter
-    # c = CurrencyConverter()
-    c = CurrencyRates()
+
     # Title
     st.title('Currency Converter 🔁')
+
     # Currency input fields
     amount = st.number_input('Enter amount to convert 👇', min_value=1, step=1, value=100)
-    from_currency = st.text_input('Enter Source Currency 👇', value='INR')
-    to_currency = st.text_input('Enter Target Currency 👇', value="USD")
+    base_currency = st.text_input('Enter Source Currency 👇', value='USD')
+    target_currency = st.text_input('Enter Target Currency 👇', value="INR")
+
     # Date input field
     conversion_date = st.date_input('Conversion Date 👇', value=date.today())
     # Convert currency when the user clicks the button
     if st.button('Convert'):
         try:
-            # converted_amount = c.convert(amount, from_currency, to_currency, date=conversion_date)
-            converted_amount = c.convert(from_currency, to_currency, amount)
-            st.success(f'{amount} {from_currency} is approximately {converted_amount:.2f} {to_currency}')
+            exchange_rate = fetch_exchange_rates(base_currency=base_currency, target_currency=target_currency, amount=amount)
+            st.success(f'{amount} {base_currency} is approximately {exchange_rate:.2f} {target_currency}')
         except ValueError as e:
             st.error(str(e))
 
