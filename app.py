@@ -15,6 +15,16 @@ from plotly import graph_objs as go
 from statsmodels.tsa.arima.model import ARIMA
 import joblib
 
+hide_st_style = """
+                <style>
+                #MainMenu {visibility : hidden;}
+                footer {visibility : hidden;}
+                header {visibility : hidden;}
+                </style>
+                """
+#remove all the default streamlit configs here
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 global main_df
 
 st.set_page_config(
