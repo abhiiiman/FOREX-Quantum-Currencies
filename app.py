@@ -22,9 +22,6 @@ hide_st_style = """
                 header {visibility : hidden;}
                 </style>
                 """
-#remove all the default streamlit configs here
-st.markdown(hide_st_style, unsafe_allow_html=True)
-
 global main_df
 
 st.set_page_config(
@@ -38,6 +35,9 @@ st.set_page_config(
         'About': "## Quantum Currencies ForEX Time Series Forecasting By The HardCoders 🦾"
     }
 )
+
+#remove all the default streamlit configs here
+st.markdown(hide_st_style, unsafe_allow_html=True)
 
 st.title("Quantum Currencies 💸")
 st.markdown("##### ForEX Dashboard 🖥️")
